@@ -8,4 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="IronXL.Excel" Version="2023.7.4" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.36.0" />
+  </ItemGroup>
+
 </Project>
