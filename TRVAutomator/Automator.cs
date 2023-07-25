@@ -1,5 +1,4 @@
-﻿using IronXL;
-using Microsoft.Playwright;
+﻿using Microsoft.Playwright;
 using Microsoft.VisualBasic.Devices;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -47,13 +46,21 @@ public class Automator
         }
         finally
         {
+            String dirPath = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TRVAutomator");
+            var exists = System.IO.Directory.Exists(dirPath);
+            if(!exists)
+            {
+                System.IO.Directory.CreateDirectory(dirPath);
+            }
+            var date = DateTime.Now;
+            String filePath = Path.Combine(dirPath, $"{date.ToString().Replace("/", "-").Replace(":","-")}OutFile.xlsx");
             fs.Close();
-            using(FileStream stream = new FileStream("D:\\projects\\Abe\\TRVAutomator\\Resources\\outfile.xlsx", FileMode.Create, FileAccess.Write))
+            using(FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
                 book.Write(stream);
             }
 
-            // Close the workbook
             book.Close();
         }
 
@@ -77,7 +84,8 @@ public class Automator
             }
             await page.GotoAsync("https://" + url);
             await ClickAsync(Selectors.LocationPopover, page);
-            await page.Locator(Selectors.ZipCode).TypeAsync("10001");
+            Task zipCode = page.Locator(Selectors.ZipCode).TypeAsync("10001");
+            zipCode.Wait();
             await page.GetByText("Apply").PressAsync("Enter");
 
             Task applyEnter = PressEnter("Submit", page);
@@ -87,17 +95,19 @@ public class Automator
             await page.ReloadAsync();
 
 
-            for(var i = RowIndex.Keyword - 1; i >= 3; i--)
+            for(var i = RowIndex.Keyword - 1; i >= 2; i--)
             {
                 var keyWord = workSheet.GetRow(i).GetCell(3).StringCellValue?.Trim();
-                await page.FillAsync(Selectors.SearchBox, string.Empty);
-                await page.Locator(Selectors.SearchBox).TypeAsync(keyWord);
+                Task task = page.FillAsync(Selectors.SearchBox, string.Empty);
+                task.Wait();
+                await page.FillAsync(Selectors.SearchBox,keyWord);
                 await page.Keyboard.PressAsync("Enter");
                 var option = await Task.Run(() => SelectRelevency(keyWord));
                 var (cellNum, rowNum) = GetColumn(option);
                 workSheet.GetRow(rowNum).GetCell(cellNum).SetCellValue(keyWord);
                 workSheet.GetRow(i).GetCell(3).SetCellValue(string.Empty);
             }
+            await browserInstance.CloseAsync();
         }
         catch(Exception ex)
         {

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TRVAutomator", "TRVAutomator\TRVAutomator.csproj", "{C1DDD5F6-DF49-4153-9237-682B8BFAEF27}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TRVAutomator(Active)", "TRVAutomator(Active)\TRVAutomator(Active).vdproj", "{092F1E9E-AE30-41DB-B482-65C772E1D2EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{C1DDD5F6-DF49-4153-9237-682B8BFAEF27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1DDD5F6-DF49-4153-9237-682B8BFAEF27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1DDD5F6-DF49-4153-9237-682B8BFAEF27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{092F1E9E-AE30-41DB-B482-65C772E1D2EA}.Debug|Any CPU.ActiveCfg = Debug
+		{092F1E9E-AE30-41DB-B482-65C772E1D2EA}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
