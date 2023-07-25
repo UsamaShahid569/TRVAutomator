@@ -1,8 +1,11 @@
 ﻿using IronXL;
 using Microsoft.Playwright;
 using Microsoft.VisualBasic.Devices;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
@@ -19,43 +22,53 @@ public class Automator
     public Automator() { }
     public void Automate(Form1 form1)
     {
-        var workBook = WorkBook.Load(FileName);
+        FileStream fs = new FileStream(FileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        var book = new XSSFWorkbook(fs);
 
         try
         {
-            var sheet = workBook.WorkSheets.FirstOrDefault();
+            var sheet = book.GetSheet("Target Relevance Verification");
+
 
             if(sheet == null)
             {
                 MessageBox.Show("Sheet is Empty");
                 return;
             }
-            ColumnIndex.KeywordIndex = ProcessIndex(sheet, "D");
-            ColumnIndex.HR = ProcessIndex(sheet, "H");
-            ColumnIndex.SR = ProcessIndex(sheet, "J");
-            ColumnIndex.BR = ProcessIndex(sheet, "L");
-            ColumnIndex.IR = ProcessIndex(sheet, "N");
+            RowIndex.Keyword = ProcessIndex(sheet, 3);
+            RowIndex.HR = ProcessIndex(sheet, 7);
+            RowIndex.SR = ProcessIndex(sheet, 9);
+            RowIndex.BR = ProcessIndex(sheet, 11);
+            RowIndex.IR = ProcessIndex(sheet, 13);
 
             Task task = Task.Run(() => ProcessKeyword(sheet));
             task.Wait();
-            workBook.Save();
 
         }
         finally
         {
-            workBook.Save();
+            fs.Close();
+            using(FileStream stream = new FileStream("D:\\projects\\Abe\\TRVAutomator\\Resources\\outfile.xlsx", FileMode.Create, FileAccess.Write))
+            {
+                book.Write(stream);
+            }
+
+            // Close the workbook
+            book.Close();
         }
 
     }
 
-    public async Task ProcessKeyword(WorkSheet workSheet)
+    public async Task ProcessKeyword(ISheet workSheet)
     {
         try
         {
             using var playwright = await Playwright.CreateAsync();
+
+            var row = workSheet.GetRow(2);
+            var url = row.GetCell(1).StringCellValue;
             var browserInstance = await playwright.Chromium.LaunchAsync(new() { Headless = false });
             var page = await browserInstance.NewPageAsync();
-            var url = workSheet["B3"]?.ToString();
 
             if(url == null)
             {
@@ -74,16 +87,16 @@ public class Automator
             await page.ReloadAsync();
 
 
-            for(var i = ColumnIndex.KeywordIndex - 1; i >= 3; i--)
+            for(var i = RowIndex.Keyword - 1; i >= 3; i--)
             {
-                var keyWord = workSheet[$"D{i}"]?.ToString();
+                var keyWord = workSheet.GetRow(i).GetCell(3).StringCellValue?.Trim();
                 await page.FillAsync(Selectors.SearchBox, string.Empty);
                 await page.Locator(Selectors.SearchBox).TypeAsync(keyWord);
                 await page.Keyboard.PressAsync("Enter");
                 var option = await Task.Run(() => SelectRelevency(keyWord));
-                var (column, cell) = GetColumn(option);
-                workSheet[$"{column}{cell}"].Value = keyWord;
-                workSheet[$"D{i}"].Value = string.Empty;
+                var (cellNum, rowNum) = GetColumn(option);
+                workSheet.GetRow(rowNum).GetCell(cellNum).SetCellValue(keyWord);
+                workSheet.GetRow(i).GetCell(3).SetCellValue(string.Empty);
             }
         }
         catch(Exception ex)
@@ -102,12 +115,12 @@ public class Automator
         return optionForm.SelectedOption;
     }
 
-    private (string , int) GetColumn(string option) => option switch
+    private (int , int) GetColumn(string option) => option switch
     {
-        "Hyper Relevant" => ("H", ColumnIndex.HR++),
-        "Semi Relevant" => ("J", ColumnIndex.SR++),
-        "Irrelevant" => ("N", ColumnIndex.IR++),
-        "Broad Relevant" => ("L", ColumnIndex.BR++),
+        "Hyper Relevant" => (7, RowIndex.HR++),
+        "Semi Relevant" => (9, RowIndex.SR++),
+        "Broad Relevant" => (11, RowIndex.BR++),
+        "Irrelevant" => (13, RowIndex.IR++),
     };
 
     private async Task ClickAsync(string locator, IPage page, int maxRetries = 3)
@@ -146,12 +159,13 @@ public class Automator
         }
     }
 
-    private int ProcessIndex(WorkSheet workSheet, string column)
+    private int ProcessIndex(ISheet workSheet, int cellNum)
     {
-        int count = workSheet.GetColumn(column).Count;
-        for(int i = 3;  i < count; i++)
+        int count = workSheet.LastRowNum;
+        for(int i = 2;  i < count; i++)
         {
-            string cell = workSheet[$"{column}{i}"]?.ToString();
+            var row = workSheet.GetRow(i);
+            var cell = row.GetCell(cellNum).StringCellValue;
             if(cell is null || String.IsNullOrEmpty(cell))
             {
                 return i;
@@ -183,9 +197,9 @@ public class Automator
     }
 }
 
-public static class ColumnIndex
+public static class RowIndex
 {
-    public static int KeywordIndex { get; set; }
+    public static int Keyword { get; set; }
     public static int HR { get; set; }
     public static int SR { get; set; }
     public static int BR { get; set; }

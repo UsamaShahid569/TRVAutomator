@@ -37,9 +37,9 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new System.Drawing.Point(-7, 12);
+            textBox1.Location = new System.Drawing.Point(12, 12);
             textBox1.Name = "textBox1";
-            textBox1.Size = new System.Drawing.Size(585, 27);
+            textBox1.Size = new System.Drawing.Size(554, 27);
             textBox1.TabIndex = 0;
             // 
             // button1
@@ -86,7 +86,7 @@
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(578, 247);
+            ClientSize = new System.Drawing.Size(578, 132);
             Controls.Add(button4);
             Controls.Add(button3);
             Controls.Add(button2);

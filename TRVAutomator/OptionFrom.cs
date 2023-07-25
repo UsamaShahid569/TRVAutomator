@@ -19,13 +19,13 @@ namespace TRVAutomator
 
         public string SelectedOption { get; private set; }
 
-        public string Keyword 
+        public string Keyword
         {
             get
             {
                 return textBox1.Text;
             }
-            set 
+            set
             {
                 textBox1.Text = value;
             }
